@@ -1,4 +1,4 @@
-const CACHE='stardust-v2.2.2';
+const CACHE='stardust-v2.2.3';
 const MEDIA=['audio/stardust-ambient.mp3'];
 const BASE=new URL('./',self.location).pathname;
 const FILES=['','index.html','style.css','universe.css','app.mjs','model.mjs','space.mjs','audio.mjs','gestures.mjs','manifest.webmanifest','icon-platinum-32.png','icon-platinum-maskable.png','icon-platinum-180.png','icon-platinum-192.png','icon-platinum-512.png'];
