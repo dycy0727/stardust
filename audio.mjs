@@ -54,7 +54,9 @@ export class SpaceAudio {
    const source=this.musicSource=c.createBufferSource();source.buffer=loop;source.loop=true;source.connect(this.music);source.start();this.error='';this.levels();
   }catch{this.error='music';this.retryAfter=performance.now()+15000;}finally{this.loadingMusic=false;this.notify();}
  }
- levels(){const c=this.context;if(!c)return;const quiet=document.hidden||this.mode==='muted';this.music.gain.setTargetAtTime(!quiet&&this.mode==='all'?(this.ducked?.010:.024):0,c.currentTime,.9);this.effects.gain.setTargetAtTime(quiet?0:.054,c.currentTime,.08);}
+ levels(){const c=this.context;if(!c)return;const quiet=document.hidden||this.mode==='muted';const music=!quiet&&this.mode==='all'?(this.ducked?.010:.024):0,effects=quiet?0:.054;
+  for(const [gain,target,fade]of [[this.music.gain,music,.9],[this.effects.gain,effects,.08]]){gain.cancelScheduledValues(c.currentTime);if(target===0)gain.setValueAtTime(0,c.currentTime);else gain.setTargetAtTime(target,c.currentTime,fade);}
+ }
  flushEffect(){const pending=this.pendingEffect;this.pendingEffect=null;if(pending&&performance.now()-pending.time<800)this.play(pending.kind);}
  tone(hz,target,volume,duration,delay=0){const c=this.context;if(!c||c.state!=='running')return;const osc=c.createOscillator(),gain=c.createGain(),start=c.currentTime+delay;osc.type='sine';osc.frequency.value=hz;gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(volume,start+Math.min(.12,duration*.2));gain.gain.exponentialRampToValueAtTime(.0001,start+duration);osc.connect(gain);gain.connect(target);osc.start(start);osc.stop(start+duration+.05);osc.onended=()=>{osc.disconnect();gain.disconnect();};}
  play(kind='open'){if(this.mode==='muted'||document.hidden)return;if(!this.ready){this.pendingEffect={kind,time:performance.now()};return;}const now=performance.now();if(now-this.lastEffect<100)return;this.lastEffect=now;const pitches={open:523.25,select:659.25,remove:440,save:783.99,burst:523.25,toggle:392};this.tone(pitches[kind]||523.25,this.effects,.2,1.25);if(kind==='burst'){this.tone(659.25,this.effects,.12,2,.16);this.tone(783.99,this.effects,.09,2.5,.32);}}
